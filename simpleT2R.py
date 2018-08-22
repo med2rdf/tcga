@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 #coding: utf-8
 #
 # simpleT2R:
@@ -54,13 +54,11 @@ _code = "simple translate from tsv into RDF"
 
 import sys
 import os
+import io
 import re
 import codecs
 import json
-import urllib
-
-reload(sys)
-sys.setdefaultencoding('utf8')
+import urllib.parse
 
 def die(msg):
 	sys.stderr.write( 'Error[' + " ".join(sys.argv) + '] : ' + msg.replace('\n',';') + "\n")
@@ -71,16 +69,13 @@ def warning(msg):
 
 def openReadFile(file_name):
 	if file_name != "-":
-		try: return open(file_name,'r')
+		try: return open(file_name,'r',encoding='utf-8')
 		except: die("ファイルを開けません。" + file_name)
 
-	if sys.version_info[0] < 3:
-		return sys.stdin
+	sys.stdin = io.TextIOWrapper(sys.stdin, encoding='utf-8')
+	return sys.stdin.buffer
 
-	return sys.stdin.detach()
-
-
-class InputFile(file):
+class InputFile:
 	def __init__(self, file_name):
 		self.handler = openReadFile(file_name)
 		self.eof = False
@@ -88,7 +83,7 @@ class InputFile(file):
 	def __iter__(self):
 		return self
 
-	def next(self):
+	def __next__(self):
 		data = self.handler.readline()
 		self.row += 1
 		if data == '':
@@ -99,15 +94,9 @@ class InputFile(file):
 		data = self.handler.readline()
 		self.row += 1
 		return self.decode(data)
-			
+
 	def decode(self,data):
-		try:
-			#文字コードをチェックするだけ
-			codecs.getdecoder('utf-8')(data)[0]
 			return data
-		except:
-			warning("入力ファイルの文字コードがおかしいです。" + data)
-			return ''
 
 
 def openWriteFile(file_name):
@@ -115,10 +104,7 @@ def openWriteFile(file_name):
 		try:    return open(file_name,'w')
 		except: die("ファイルの書き込み許可がありません。" + file_name)
 
-	if sys.version_info[0] < 3:
-		return sys.stdout
-
-	return sys.stdout.detach()
+	return sys.stdout
 
 
 class OutputFile:
@@ -234,7 +220,7 @@ def getResource(config,list,func,row):
 	if len(obj) == 0:
 		return None
 
-	obj = urllib.quote(obj)
+	obj = urllib.parse.quote(obj)
 	obj = obj.replace("%3A",":").replace("%23","#")
 	if _prefix in config:
 		obj = config.get(_prefix) + ":" + obj
@@ -248,16 +234,6 @@ def getResource(config,list,func,row):
 #メイン関数
 def main(argv):
 
-	re_usage = re.compile("^(--|-u|--usage)$")
-	re_help = re.compile("^(--|-h$)")
-	
-	if len(argv) <= 1 : usage(_usage,_sample)
-	if len(argv) == 2:
-		arg = argv[1]
-		if re_usage.match(arg): usage(_usage,_sample)
-		if re_help.match(arg): help()
-
-	#IOの準備
 	argv = argv[1:]
 
 	config_file_name = argv[0]
