@@ -21,6 +21,9 @@ def main(argv):
 	argv = argv[1:]
 
 	case = -1
+	type = 0
+	chr = 0
+	build = 0
 	with open(argv[0], encoding='utf-8') as f:
 		for line in f:
 			line = line.rstrip()
@@ -31,10 +34,17 @@ def main(argv):
 				for cnt in range(len(list)):
 					if list[cnt] == "Tumor_Sample_Barcode":
 						case = cnt
-				sys.stdout.write("Case_Id\t" + line + "\n")
+					if list[cnt] == "Variant_Type":
+						type = cnt
+					if list[cnt] == "Chromosome":
+						chr = cnt
+					if list[cnt] == "NCBI_Build":
+						build = cnt
+				sys.stdout.write("Case_Id\tChr_Build\t" + line + "\n")
 			else:
-				clist = list[case].split("-")
-				sys.stdout.write("-".join(clist[:3]) + "\t" + line + "\n")
+#				if list[type] == "SNP":
+					clist = list[case].split("-")
+					sys.stdout.write("-".join(clist[:3]) + "\t" + "http://identifiers.org/hco/" + list[chr][3:] + "#" + list[build] + "\t" + line + "\n")
 	return 0
 
 if __name__ == '__main__': sys.exit(main(sys.argv))

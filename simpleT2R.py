@@ -44,6 +44,7 @@ _classes = "classes"
 _property = "property"
 _object = "object"
 _literal = "literal"
+_literals = "literals"
 _integer = "integer"
 _number = "number"
 labelMap = {}
@@ -183,6 +184,17 @@ def title(str):
 
 def getResource(config,list,func,row):
 	obj = ""
+	literals = []
+	if _literals in config:
+		for literal in config.get(_literals,[]):
+			# need error check
+			t = list[labelMap.get(literal)]
+			if len(t) == 0:
+				return None
+			literals.append(func(t))
+		obj = "".join(["\"","_".join(literals),"\""])
+		return obj
+
 	if _literal in config:
 		literal = config.get(_literal,"")
 		if literal in labelMap:
