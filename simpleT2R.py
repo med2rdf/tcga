@@ -44,6 +44,7 @@ _classes = "classes"
 _property = "property"
 _object = "object"
 _literal = "literal"
+_integer = "integer"
 _number = "number"
 labelMap = {}
 
@@ -192,6 +193,16 @@ def getResource(config,list,func,row):
 		else:
 			obj = "".join(["\"",literal,"\""])
 		return obj
+	if _integer in config:
+		integer = config.get(_integer,"")
+		if integer in labelMap:
+			obj = list[labelMap.get(integer)]
+			if len(obj) == 0:
+				return None
+		else:
+			obj = integer
+		return obj
+
 	if _name in config:
 		obj = config.get(_name)
 		return obj
@@ -237,8 +248,11 @@ def main(argv):
 	argv = argv[1:]
 
 	config_file_name = argv[0]
+	output_file_name = "-"
 	if len(argv) >= 2:
 		input_file_name = argv[1]
+		if len(argv) >= 3:
+			output_file_name = argv[2]
 	else:
 		input_file_name = "-"
 
@@ -246,7 +260,7 @@ def main(argv):
 	config = json.load(config_file)
 
 	input_file = InputFile(input_file_name)
-	output_file = OutputFile("-")
+	output_file = OutputFile(output_file_name)
 
 	if _base in config:
 		output_file.write("\t".join(["@base",config[_base],".\n"]))
