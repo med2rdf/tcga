@@ -236,7 +236,7 @@ def getResource(config,list,func,row):
 		if len(t) == 0:
 			return None
 		labels.append(func(t))
-	if config.get(_number,False):
+	if _number in config:
 		labels.append(str(row-1))
 	obj += "_".join(labels)
 
